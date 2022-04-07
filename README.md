@@ -1,3 +1,3 @@
 # Projects
 
-Hello UROP project.
+Hello UROP project!
