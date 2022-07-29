@@ -1,52 +1,42 @@
 
-# libraries ---------------------------------------------------------------
+# libraries and data ---------------------------------------------------------------
 
 library(tidyverse)
 library(readr) # read csv
 library(readxl) # read excel
 library(ggplot2)
 library(stringr)
+library(dplyr)
 # install.packages("cowplot")
 library(cowplot)
-install.packages('vtable')
 library(broom)
-
-install.packages("palmerpenguins")
-
-# load data ------------------------------------------------------------
+# install.packages('viridis')
+library(viridis)
 
 bgc = read_csv("data/BGCs/antismash_summary.csv")
 
-## 06072022 ====
+# Basic operations ------------------------------------------------------------
 
-sum(dim(bgc)) # concacenate f(x). not good
+# AIM: learn %>%, select, filter, mutate, groupby, summarise
 
-# pipe operator 
+# add up dimensions
+sum(dim(bgc)) # concatenate f(x).messy when operating several f(x).
+
+# pipe operator is much clearer.
 bgc %>% 
   dim() %>%  
   sum()  
 
-# important f(x): select, filter, mutate, groupby, summarise
-
-# select, filter(select(bgc, genome:contig), type == 'NRPS') 
+# select columns and filter out specific value 
 bgc %>% 
   select(genome, type, cluster, contig, start, end) %>% 
-  #filter in col 'type'.revise boolean
+  #filter in col 'type'
   filter(type %in% c('NRPS', 'siderophore'), start != 0)
 
 
-# gen columns 
-bgc %>% 
-  select(genome, type, cluster, contig,start,end) %>% 
-  mutate(lengthy = end - start) %>% 
-  # paste
-  mutate(ID = paste(genome, type, sep = '_')) %>% 
-  # modify original col 
-  mutate (start = start / 2) %>% 
-  group_by(genome) 
-
-#  MUTATE for new col 
-bgc %>% 
+# mutate: generate new columns. assign it to bgc_counts
+# you can modify column by assigning same col name 
+bgc_counts = bgc %>% 
   select(genome, type, cluster, contig,start,end) %>% 
   filter(start!=0) %>% 
   mutate(gene_length = end - start) %>% 
@@ -55,146 +45,144 @@ bgc %>%
   group_by(type) %>% 
   count(sort = TRUE)
 
-# summary operation  
+# group_by : group BGC type
 bgc %>% 
   select(genome, type, cluster, contig,start,end) %>% 
   filter(start!=0) %>% 
-  mutate(lengthyy = end - start) %>% 
+  mutate(length = end - start) %>% 
   mutate(ID = paste(genome, type, sep = '_')) %>% 
   group_by(type) %>% 
-  # summarise(n =n()) 
+  # summarise: 
   summarise(
-    gene_mean = mean(lengthy),
-    gene_std = sd(lengthy)
-  ) %>% 
+    gene_mean = mean(length), gene_std = sd(length)) %>% 
   arrange(desc(gene_mean)) # descending / ascending
   
-
-# gene len mean as new object 
+# group_by type of BGC
+# summarise create new df.
 gene_length = bgc %>% 
   select(genome, cluster, type, contig, start, end) %>% 
   filter(start != 0 ) %>% 
   mutate(gene_length = end - start) %>% 
   mutate(ID = paste(genome, type, sep = '_')) %>% 
   group_by(type) %>% 
+  # calculate gene mean and sd of different BGC types
+  # n = n() : count nrow by group. 
   summarise(
-    gene_mean = mean(gene_lenght),
-    gene_std = sd(gene_lenght)
+    gene_mean = mean(gene_length),
+    gene_std = sd(gene_length), n = n()
   ) %>% 
-  arrange(desc(gene_mean))
+  arrange(desc(gene_mean)) # order
 
-# own exploration
-for (i in 1:ncol(bgc)) {
-  print(count(unique(bgc[,i])))
-}
-  
 
-## 08072022 ====
+# Exploration  ------------------------------------------------------------
+
+# AIM: find any relationships between 
+## 1. bgc genome, type ====
 
 length(bgc$genome) # does not = genome
-length(unique(bgc$genome))
+length(unique(bgc$genome))# 747 distinct genomes.
 
+# distinct: select unique rows from df
+# count = unique values
+# .keep_all retain other columns 
 bgc %>% 
-  distinct(genome,.keep_all = TRUE) 
-# counting
-bgc %>% 
-  distinct(type) %>% 
-  count()
+  distinct(genome, .keep_all = TRUE) %>% 
+  count() 
 
-# ggplot2
+# geom_point. aes = asthetics
+# 'fill' = filling the data point 
 gene_length %>% 
-  #plot points 
   ggplot(aes(x = type, y =gene_mean )) + 
   geom_point(shape = 8, colour = "black", fill = "white", 
              size = 1, stroke = 1) + 
-  #reverse order in x axis
+  # BGC types in alphabetical order
   scale_x_discrete(limits = rev) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
   
-# 1st plot
+
+# geom_bar: barplot of gene mean by BGC type
+# change axis to make data more readable. 
 gene_length %>% 
-  #plot points 
-  ggplot(aes(x = type, y =gene_mean )) + 
-  geom_point(shape = 8, colour = "black", fill = "white", 
-             size = 1, stroke = 1) + 
-  #reverse order in x axis
-  scale_x_discrete(limits = rev) + 
-  theme(axis.text.x = element_text(angle = 45)) 
+  ggplot(aes(x = gene_mean, y =type, fill = type)) + 
+  geom_bar(stat='identity', show.legend = F) + 
+  labs(y = 'gene mean', x = 'BGC types') + # labs: relabel axis
+  theme_cowplot(10) + # cowplot gives cool colours
+  scale_y_discrete(limits = rev) # alphabetical order 
+# save plot as pdf / png.
+ggsave('output/figures/barplot_gene_length.pdf', width=5, height=6)
 
-#2nd plot
-gene_length %>% 
-  #plot points 
-  ggplot(aes(x = gene_mean, y =type)) + 
-  geom_bar(stat='identity', fill = type ) + 
-  labs(y = 'gene mean', x = 'peptidess')
-  #reverse order in x axis
-  scale_y_discrete(limits = rev)
-
-
-
-
-#aixs.text.x
-ggsave('barplot.pdf', width=5, height=6) # save plot as pdf
-#theme_cowplot(19) # font
-# can put pathway
-
-# stat::filter VS dplyr::filter. :: can specify package 
+#  boxplot of gene length by BGC type
+# order of plotting matters, they overlay. eg. boxplot -> points
 bgc %>% 
   select(genome, type, cluster, contig,start,end) %>% 
   filter(start!=0) %>% 
   mutate(gene_length = end - start) %>% 
   mutate(ID = paste(genome, type, sep = '_')) %>% 
-  ggplot(aes(y = type, x = gene_length))
+  mutate(type = as.factor(type)) %>% 
+  ggplot(aes(y = type, x = gene_length, fill = type)) +
+  geom_boxplot(show.legend = F) +
+  geom_point(alpha = 0.5, show.legend = F) +
+  theme_cowplot(12) 
+ggsave('output/figures/boxplot_bgc_gene.pdf', width=5, height=6)
+# stat::filter VS dplyr::filter. 
+# :: can specify package to avoid conflict. 
 
-# fill = type, in aes ggplot
-
-
-
-
-
-## 11072022 ============================================
+## 2. metadata ============================================
 
 # load metadata
 metadata = read_excel("data/MAIN_metadata.xlsx")
 
 ## AIM: join data with bgc
+# does not work. no row contents and colnames match
 bgc %>% 
-  left_join(metadata) # does not work rows does not match 
-  filter(Origin %in% )
-  # mutate(fasta = str_sub(fasta, start=1, end =-7)) %>% 
+  left_join(metadata) 
 
-# create spc col in phylo in metadata
+# column names 
+# fasta column has '.fasta' 
+colnames(metadata)
+view(metadata['fasta'])
+
+# 1. remove '.fasta', rename column as genome 
+# 2. join with bgc.
+
+# modify metadata as phylo for joining  
 phylo = metadata %>%  
-  # trust dani
+  # select specific origins for analysis
   filter(Origin %in% c('AUS', 'ECOREF')) %>% 
   # choose undiscarded data
   filter(Discard == 'No') %>% 
   select(fasta, Broadphenotype, phylogroup) %>% 
   distinct(fasta, .keep_all = TRUE) %>% 
-  # make new col'genome' from 'fasta'.
+  # make new col 'genome' from 'fasta'.
   mutate(genome = str_sub(fasta, start = 1, end = -7)) %>% 
   # del 'fasta' col
   select(-fasta) 
 
-# let's join df
+# let's join dataframe as bgc_extended 
 bgc_extended = bgc %>% 
   left_join(phylo)
-  
-# homework 
+
+
+# Visualisation  ----------------------------------------------------------
+
+##1. data processing ====
+colnames(bgc_extended)
+unique(bgc_extended['phylogroup'])
+
+# boxplot: phylogroups and gene length
 bgc_extended %>% 
-  # start from 0 is not in range. 
+  # process it again 
   filter(start != 0) %>% 
   mutate(gene_length = end - start) %>% 
   mutate(ID = paste(genome, type, sep = '_')) %>% 
-  # convert to factor
   mutate(type = as.factor(type)) %>%
-  #filter out NA 
+  #filter out NA in phylogroup
   filter(!is.na(phylogroup)) %>%
   # filter cladeI
   filter(!phylogroup %in% c('NA', 'cladeI')) %>% 
-  #convert 'E or cladeI' to 'E'
+  # convert 'E or cladeI' to 'E'
   mutate(phylogroup = replace( phylogroup, phylogroup=='E or cladeI', 'E')) %>% 
-  # ggplot
+  # ggplot : phylogroup and gene length 
   ggplot(aes(y = phylogroup, 
              x = gene_length, 
              fill = phylogroup)) +
@@ -204,17 +192,15 @@ bgc_extended %>%
   theme_cowplot(15) + 
   scale_y_discrete(limits = rev)
 
-ggsave('barplot.pdf', width=5, height=6)
+ggsave('output/figures/barplot_phylo_gene.pdf', width=5, height=6)
 
 
-## BGC by phylogroup. proportion
-palette = c('#C0E2C9', "#88B7B5", '#C7BC9D',"#847996","#310A31")
+# barplot: BGC proportion by phylogroup
 bgc_extended %>% 
   filter(start != 0 ) %>%
-  # filter(type == 'NRPS') %>% 
   mutate(gene_length = end - start) %>% 
   mutate(ID = paste(genome, type, sep = '_')) %>% 
-  # filter NA and E...
+  # filter NA and E, replace 'E or CaldeI'
   filter(!is.na(phylogroup)) %>%
   filter(!phylogroup %in% c('NA', 'cladeI')) %>%  # != 'cladeI'
   mutate(phylogroup = replace( phylogroup, phylogroup=='E or cladeI', 'E')) %>% 
@@ -225,12 +211,11 @@ bgc_extended %>%
            show.legend = T) +
   theme_cowplot(15)
 
-
-ggsave('barplot2.pdf', width=5, height=6)
+ggsave('output/figures/barplot_bgc_phylo.pdf', width=5, height=6)
  
-## boxplot of BGC by phenotype
+## boxplot : BGC by phenotype
 # types
-unique(bgc_extended$Broadphenotype) # NA. unknown.
+unique(bgc_extended$Broadphenotype) # there are NA. unknown.
 
 bgc_extended %>% 
   filter(start != 0 ) %>%
@@ -243,69 +228,128 @@ bgc_extended %>%
   mutate(phylogroup = replace( phylogroup, phylogroup=='E or cladeI', 'E')) %>% 
   # filter NA in phenotype
   filter(!is.na(type)) %>% # or drop_na(phylogroup)
-  # ggplot
-  ggplot(aes( y = Broadphenotype, 
-             fill = phylogroup)) +
+  ggplot(aes( y = Broadphenotype,fill = phylogroup)) +
   geom_bar(position = 'fill', show.legend = T)
 
-ggsave('barplot3.pdf', width=5, height=6)
+ggsave('output/figures/boxplot_BGC_pheno.pdf', width=5, height=6)
 
-
-## 14072022 ====
-
-# solutions last time. in pipe
-mutate(phylogroup = case_when(phylogroup=='E or cladeI'~ 'E',
-                              TRUE~phylogroup), # must, or else it changes to NA
-       .before = type)
-
-
-#with proportion 
+###  remarks
+# 1. using case_when for conditional reasoning 
 bgc_extended %>% 
-  filter(!is.na(phylogroup)) %>%
-  filter(!phylogroup %in% c('NA', 'cladeI')) %>%  # != 'cladeI'
-  mutate(phylogroup = replace( phylogroup, phylogroup=='E or cladeI', 'E')) %>% 
-  # ignore
-  group_by(phylogorup,type) %>% 
-  mutate(n=n/n()) %>% 
-  
+  mutate(phylogroup = case_when(phylogroup=='E or cladeI'~ 'E', # tiddle for changing
+                                TRUE~phylogroup), # must, or else other values change to NA
+         .before = type)
 
-
-# useful computational operations for values 
+# 2. useful computational operations / without pipe
 seq(4,6,0.5)
+clean_phylo = phylogroups[phylogroups != 'cladeI']
+clean_phylo = clean_phylo[!is.na(clean_phylo)]
 
 
+## 2. statistical analysis -------------------------------------------------------------------
 
-# stats -------------------------------------------------------------------
-## 14072022 ====
+# AIM: statistical significance of BGC gene lengths in different phylogroups? compare >= 5. 
 
+## 1. a vs b2
+a_vs_b2 = bgc_extended %>% 
+  filter(start!=0) %>% 
+  mutate(gene_length= end - start) %>% 
+  mutate(type = as.factor(type)) %>% 
+  filter(phylogroup %in% c('A','B2')) %>% 
+  select(phylogroup, gene_length)
+# linear model 
+model = lm(gene_length ~ phylogroup, data = a_vs_b2) 
+sum_model = summary(model)
+# tidy() : summarises statistical findings
+stats = tidy(sum_model) %>% 
+  # rearrange column before col 'term'
+  mutate(comparison = 'A vs B2', 
+         .before = 'term') %>%
+  filter(term != '(Intercept)') 
+
+# accessing coefficients
+sum_model$coefficients
+
+# 2. c VS E 
 c_vs_e = bgc_extended %>% 
   filter(start!=0) %>% 
   mutate(gene_length= end - start) %>% 
-  # paste
-  mutate(ID = paste(genome, type, sep = '_')) %>% 
   mutate(type = as.factor(type)) %>% 
   filter(phylogroup %in% c('C','E')) %>% 
   select(phylogroup, gene_length)
 
-model = lm(gene_length ~ phylogroup, data = c_vs_e)
-summary(model)$pvalue
+model2 = lm(gene_length ~ phylogroup, data = c_vs_e)
+sum_model2 = summary(model2)
 
-## a vs b2
-a_vs_b2 = bgc_extended %>% 
+# tidy sum_model2 as stats2 
+stats2 = tidy(sum_model2) %>% 
+  mutate(comparison = 'C vs E', 
+         .before = 'term') %>% 
+  filter(term != '(Intercept)') %>% 
+  bind_rows(stats) # bind stats to stats2 
+stats2
+
+# 3. B1 VS B2 
+b1_vs_b2 = bgc_extended %>% 
   filter(start!=0) %>% 
   mutate(gene_length= end - start) %>% 
-  mutate(ID = paste(genome, type, sep = '_')) %>% 
   mutate(type = as.factor(type)) %>% 
-  filter(phylogroup %in% c('A','B2')) %>% 
+  filter(phylogroup %in% c('B1','B2')) %>% 
   select(phylogroup, gene_length)
 
-model = lm(gene_length ~ phylogroup, data = a_vs_b2) 
-sum_model = summary(model)
-#accessing coeff
-sum_model$coefficients
+model3 = lm(gene_length ~ phylogroup, data = b1_vs_b2)
+sum_model3 = summary(model3)
 
-# homework: comparisons commensal vs pathogenic strians
-# by phenotype
+# tidy sum_model
+stats3 = tidy(sum_model3) %>% 
+  mutate(comparison = 'B1 VS B2', 
+         .before = 'term') %>% 
+  filter(term != '(Intercept)') %>% 
+  bind_rows(stats2) # bind stats to stats2 
+stats3
+
+
+# 4. D VS F 
+d_vs_f = bgc_extended %>% 
+  filter(start!=0) %>% 
+  mutate(gene_length= end - start) %>% 
+  mutate(type = as.factor(type)) %>% 
+  filter(phylogroup %in% c('D','F')) %>% 
+  select(phylogroup, gene_length)
+
+model4 = lm(gene_length ~ phylogroup, data = d_vs_f)
+sum_model4 = summary(model4)
+
+# tidy sum_model
+stats4 = tidy(sum_model4) %>% 
+  mutate(comparison = 'D VS F', 
+         .before = 'term') %>% 
+  filter(term != '(Intercept)') %>% 
+  bind_rows(stats3) # bind stats to stats2 
+stats4
+
+# 5. A VS C 
+a_vs_c = bgc_extended %>% 
+  filter(start!=0) %>% 
+  mutate(gene_length= end - start) %>% 
+  mutate(type = as.factor(type)) %>% 
+  filter(phylogroup %in% c('A','C')) %>% 
+  select(phylogroup, gene_length)
+
+model5 = lm(gene_length ~ phylogroup, data = a_vs_c)
+sum_model5 = summary(model5)
+
+# tidy sum_model
+stats5 = tidy(sum_model5) %>% 
+  mutate(comparison = 'A VS C', 
+         .before = 'term') %>% 
+  filter(term != '(Intercept)') %>% 
+  bind_rows(stats4) # bind stats to stats2 
+stats5
+
+save(stats5, file = 'output/tables/stat_length_phylo.Rda')
+
+# phenotypes versus phenotypes
 vs_phenotype = bgc_extended %>% 
   filter(start!=0) %>% 
   mutate(gene_length= end - start) %>% 
@@ -322,46 +366,54 @@ model_phenotype = lm(gene_length ~ Broadphenotype,
 summary(model_phenotype)
 
 
-# gene_len, phylogroups
-a_vs_b2 = bgc_extended %>% 
-  filter(start != 0 ) %>%
-  # filter(type == 'NRPS') %>% 
-  mutate(gene_length = end - start) %>% 
-  mutate(ID = paste(genome, type, sep = '_')) %>% 
-  mutate(phylogroup = as.factor(phylogroup)) %>% 
-  filter(phylogroup %in% c('B2', 'E')) %>% 
-  select(phylogroup, gene_length)
+## 3. heatmap ====
+# colour package viridis: 
+# "magma" =  "A". "inferno" = "B". "plasma" = "C".
+# "viridis" = "D". "cividis" = "E". "rocket" ="F".
+# "mako" ="G". "turbo" = "H"
 
-model = lm(formula = gene_length ~ phylogroup, 
-           data = a_vs_b2)
+# heatmap shows categorical relationships in 2 axis to observe patterns.
+colnames(bgc_extended) # as ref
 
-sum_model = summary(model)
-sum_model
-
-#me
-
-bgc_extended_tab = bgc_extended %>% 
-  filter(start!=0) %>% 
-  mutate(gene_length= end - start) %>% 
-  mutate(ID = paste(genome, type, sep = '_')) %>% 
-  mutate(type = as.factor(type)) %>% 
-  drop_na(phylogroup) %>%
-  filter(!phylogroup %in% c('NA', 'cladeI')) %>% 
-  mutate(phylogroup = replace( phylogroup, phylogroup=='E or cladeI', 'E')) %>% 
-  select(phylogroup, gene_length) 
-
-
-
-
-## 18072022====
-tidy(table)
-
-
-## 260722 ====
-# heatmap 
-
+# geom_tiles : heatmap of genome and bgc type. 
+# VS other plots: it shows abundance.
 bgc_extended %>% 
   ggplot(aes(x = genome, y = type, fill = type)) +
-  geom_tile() + 
+  geom_tile(show.legend = F) +
   theme(axis.text.x = element_blank())
+
+# heatmap of phylogroup, bgc type , gene length
+bgc_extended %>% 
+  drop_na(phylogroup) %>% 
+  mutate(type = as.factor(type)) %>% 
+  group_by(phylogroup, type) %>% # gorup by both factors
+  filter(phylogroup != 'cladeI') %>% 
+  mutate(gene_length = end - start) %>% 
+  summarise(Mean = mean(gene_length)) %>% # grouped df
+  ggplot(aes(x = phylogroup, y = type, fill = Mean)) +
+  geom_tile(show.legend = T) +
+  theme_cowplot() +
+  scale_fill_viridis() + 
+  theme(axis.text.x = element_text(angle = 90))
+
+ggsave('output/figures/heatmap_bgc_phylo_gene.pdf', height = 6, width = 6)
+
+# heatmap of bacterial phenotype, bgc type (n)
+bgc_extended %>% 
+  # replace NA to unknown
+  mutate(Broadphenotype = na_if(Broadphenotype, "Unknown")) %>% 
+  mutate(type = as.factor(type)) %>% 
+  group_by(Broadphenotype, type) %>% 
+  #count(Broadphenotype, type, sort = T) %>% 
+  summarise(n = n()) %>% 
+  ggplot(aes(x = Broadphenotype, y = type, fill = n)) +
+  geom_tile(show.legend = T) +
+  theme_cowplot() +
+  scale_fill_viridis(option = 'plasma') +
+  theme(axis.text.x = element_text(angle = 90))
+
+ggsave('output/figures/heatmap_bgc_pheno_gene.pdf', height = 6, width = 6)
+
+
+
 
