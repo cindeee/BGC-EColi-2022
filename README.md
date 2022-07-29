@@ -1,12 +1,14 @@
-# BGC_EColi
-This is a Git repository for analysing Biosynthetic Gene Clusters of Escherichia Coli from its pangenome.
+# BGC-EColi
+A summer research project analysing Biosynthetic Gene Clusters from the pangenome of Escherichia Coli.
 
+The subfolders contain the following: 
 
+**code** : R scripts for dataset exploration and analysis.
 
-  
-## This repo will demonstrate the following skills.
+**data** : datasets.
 
+**report** : checkpoints that summarise learning progress.
 
 ### Acknowledgements
-I would like to express my huge gratitude to our supervisor Dr @dmartimarti for his teaching and inspirations :)
-A huge thanks to another colleague Ka Wing Yeung for our collaboration and support :)
+I would like to express my huge gratitude to our supervisor Dr @dmartimarti for his teaching and inspiration. 
+A huge thanks to colleague Jennifer Yeung for our collaboration and support.
