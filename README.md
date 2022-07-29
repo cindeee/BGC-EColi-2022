@@ -5,7 +5,7 @@ The subfolders contain the following:
 
 **code** : R scripts for dataset exploration and analysis.
 
-**data** : datasets.
+**data** : empty folder (uncertain about data privacy issues).
 
 **report** : checkpoints that summarise learning progress.
 
