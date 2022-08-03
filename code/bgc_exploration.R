@@ -414,6 +414,137 @@ bgc_extended %>%
 
 ggsave('output/figures/heatmap_bgc_pheno_gene.pdf', height = 6, width = 6)
 
+# PCA ---------------------------------------------------------------------
+#install.packages('plotly')
+library(plotly)
+library(broom) 
 
+## 1. compute PCA ====
+
+## 1. data reshaping 
+# a new processed data for pca
+pca_df = 
+  bgc_extended %>%
+  filter(start != 0) %>% 
+  filter(phylogroup != 'cladeI') %>%
+  drop_na(phylogroup) %>% 
+  mutate(phylogroup = replace( phylogroup, phylogroup=='E or cladeI', 'E')) %>% 
+  group_by(genome, phylogroup, Broadphenotype, type) %>% 
+  count() %>% 
+  # pivot_wider: reshape data pivoted with factor of interest (BGCtypes) as columns.
+  pivot_wider(names_from = type, # colnames = type
+              values_from = n, # rows = counts
+              values_fill = 0) %>% 
+  ungroup
+
+
+# 2. compute pca, explained variance
+
+pca_fit = pca_df %>%  
+  select(where(is.numeric)) %>% # numeric continuous data only 
+  prcomp(scale = F) # scaled to have unit variance 
+
+pca_fit %>%
+  tidy(matrix= "eigenvalues") %>%
+  ggplot(aes(PC,percent)) +
+  geom_col(fill="#56B4E9",alpha =0.8) +
+  scale_x_continuous(breaks=1:18) +
+  scale_y_continuous(
+    labels =scales::percent_format(),
+    expand= expansion(mult = c(0,0.01))
+  ) +
+  theme_minimal_hgrid()
+
+ggsave('output/figures/pca_explained_var.pdf', height = 6, width = 6)
+
+
+## 2. visualisation====
+
+### grouped by phylogroups ====
+
+# plotting with pc1 and pc2
+pca_fit %>% 
+  augment(pca_df) %>% 
+  ggplot(aes(.fittedPC1, .fittedPC2,
+             color =phylogroup, fill = phylogroup)) + 
+  stat_ellipse(geom = 'polygon', alpha = 0.2) + 
+  geom_point(size = 2.5) + 
+  theme_half_open(12) + 
+  background_grid()
+
+ggsave('output/figures/pca_phylo_PC12.pdf', width=5, height=6)
+
+# plotting with pc1 and pc3
+pca_fit %>% 
+  augment(pca_df) %>% 
+  ggplot(aes(.fittedPC1, .fittedPC3,
+             color = phylogroup, fill = phylogroup)) + 
+  stat_ellipse(geom = 'polygon', alpha = 0.2) + 
+  geom_point(size = 2.5) + 
+  theme_half_open(12) + 
+  background_grid()
+
+ggsave('output/figures/pca_phylo_PC13.pdf', width=5, height=6)
+
+# 3D plotting with plot_ly
+
+pca_plot = pca_fit %>%  
+  augment(pca_df)
+# let's include prime 3 compnents
+fig = plot_ly(pca_plot, 
+              x = ~.fittedPC1,
+              y =  ~.fittedPC2,
+              z =  ~.fittedPC3,
+              color = ~phylogroup,  
+              mode = "markers", type = "scatter3d")
+
+fig
+
+### grouped by phenotypes ====
+
+pca2_fit = pca_df %>%  
+  select(where(is.numeric)) %>% # numeric continuous data only 
+  prcomp(scale = F) # scaled to have unit variance 
+
+ggsave('output/figures/pca_phylo.pdf', width=6, height=6)
+
+# plotting with pc1 and pc2
+pca2_fit %>% 
+  augment(pca_df) %>% 
+  ggplot(aes(.fittedPC1, .fittedPC2,
+             color =Broadphenotype, fill = Broadphenotype)) + 
+  stat_ellipse(geom = 'polygon', alpha = 0.2) + 
+  geom_point(size = 2.5) + 
+  theme_half_open(12) + 
+  background_grid()
+
+ggsave('output/figures/pca_pheno_PC12.pdf', width=5, height=6)
+
+
+# plotting with pc1 and pc3
+pca2_fit %>% 
+  augment(pca_df) %>% 
+  ggplot(aes(.fittedPC1, .fittedPC3,
+             color = Broadphenotype, fill = Broadphenotype)) + 
+  stat_ellipse(geom = 'polygon', alpha = 0.2) + 
+  geom_point(size = 2.5) + 
+  theme_half_open(12) + 
+  background_grid()
+
+ggsave('output/figures/pca_pheno_PC13.pdf', width=5, height=6)
+
+
+# 3D plotting with plot_ly
+
+pca2_plot = pca2_fit %>%  
+  augment(pca_df)
+
+fig2 = plot_ly(pca_plot, 
+              x = ~.fittedPC1,
+              y =  ~.fittedPC2,
+              z =  ~.fittedPC3,
+              color = ~Broadphenotype,  
+              mode = "markers", type = "scatter3d")
+fig2
 
 
