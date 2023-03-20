@@ -1,14 +1,13 @@
-# BGC-EColi
-A summer research project analysing Biosynthetic Gene Clusters from the pangenome of Escherichia Coli.
+# Undergraduate projects 
+This repo includes all research projects in bioinformatics and machine learning.
 
-The subfolders contain the following: 
+### 1. Ecoli_UROP
+Summer research project analysing Biosynthetic Gene Clusters from the pangenome of Escherichia Coli in MRC LMS.
 
-**code** : R scripts for dataset exploration and analysis.
+### 2. ML_SS
+StudentShapers project deploying transformer models in sentiment analysis. 
 
-**data** : empty folder (data privacy issues).
+### 3. fyp_UG
+Final year project investigating metabolite biomarkers for inflammatory bowel disease (IBD) diagnosis in the Department of Digestion, Metabolism and Reproduction.
+Data are originally visualised in SIMCA and is translated as R script.
 
-**report** : checkpoints that summarise learning progress.
-
-### Acknowledgements
-I would like to express my huge gratitude to our supervisor Dr @dmartimarti for his teaching and inspiration. 
-A huge thanks to colleague Jennifer Yeung for our collaboration and support.
