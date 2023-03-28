@@ -1,0 +1,28 @@
+"","Total","Expected","Hits","Raw p","-log10(p)","Holm adjust","FDR","Impact"
+"Caffeine metabolism",10,0.13548,3,0.00024232,3.6156,0.020355,0.0090517,0
+"Phenylalanine metabolism",10,0.13548,3,0.00024232,3.6156,0.020355,0.0090517,0.59524
+"Aminoacyl-tRNA biosynthesis",48,0.65032,5,0.00032328,3.4904,0.026509,0.0090517,0
+"Phenylalanine, tyrosine and tryptophan biosynthesis",4,0.054194,2,0.0010325,2.9861,0.083631,0.021682,1
+"Arginine biosynthesis",14,0.18968,2,0.014428,1.8408,1,0.2424,0
+"Riboflavin metabolism",4,0.054194,1,0.053153,1.2745,1,0.64185,0.5
+"Alanine, aspartate and glutamate metabolism",28,0.37935,2,0.053488,1.2717,1,0.64185,0.11378
+"D-Glutamine and D-glutamate metabolism",6,0.08129,1,0.078709,1.104,1,0.64857,0
+"Nitrogen metabolism",6,0.08129,1,0.078709,1.104,1,0.64857,0
+"Thiamine metabolism",7,0.094839,1,0.091239,1.0398,1,0.64857,0
+"Pyrimidine metabolism",39,0.52839,2,0.095955,1.0179,1,0.64857,0.04819
+"Valine, leucine and isoleucine biosynthesis",8,0.10839,1,0.10361,0.98461,1,0.64857,0
+"Taurine and hypotaurine metabolism",8,0.10839,1,0.10361,0.98461,1,0.64857,0.42857
+"Tyrosine metabolism",42,0.56903,2,0.10884,0.9632,1,0.64857,0.13972
+"Ubiquinone and other terpenoid-quinone biosynthesis",9,0.12194,1,0.11582,0.93623,1,0.64857,0
+"Butanoate metabolism",15,0.20323,1,0.1858,0.73095,1,0.91808,0
+"Nicotinate and nicotinamide metabolism",15,0.20323,1,0.1858,0.73095,1,0.91808,0.1943
+"Histidine metabolism",16,0.21677,1,0.19694,0.70566,1,0.91906,0.12295
+"Purine metabolism",65,0.88065,2,0.21902,0.65952,1,0.9683,0.01651
+"Citrate cycle (TCA cycle)",20,0.27097,1,0.24006,0.61968,1,1,0.03273
+"Propanoate metabolism",23,0.31161,1,0.27095,0.56712,1,1,0
+"Lysine degradation",25,0.33871,1,0.29087,0.53631,1,1,0
+"Glyoxylate and dicarboxylate metabolism",32,0.43355,1,0.35659,0.44783,1,1,0
+"Valine, leucine and isoleucine degradation",40,0.54194,1,0.42459,0.37203,1,1,0
+"Tryptophan metabolism",41,0.55548,1,0.43259,0.36392,1,1,0.14305
+"Primary bile acid biosynthesis",46,0.62323,1,0.47104,0.32694,1,1,0.00758
+"Steroid hormone biosynthesis",85,1.1516,1,0.69649,0.15709,1,1,0
