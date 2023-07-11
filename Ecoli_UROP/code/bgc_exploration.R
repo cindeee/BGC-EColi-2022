@@ -7,21 +7,13 @@ library(readxl)
 library(cowplot)
 
 # loading data ---------------------
-
 bgc = read_csv("data/BGCs/antismash_summary.csv")
 
-# test of functions
+# pipe operators to 
 sum(dim(bgc))
-
 bgc %>%
   dim() %>% 
   sum()
-
-# select
-# filter
-# mutate
-# group by
-# summarise
 
 ## tidyverse training ---- 
 
@@ -51,9 +43,6 @@ gene_length = bgc %>%
   ) %>% 
   arrange(desc(gene_mean))
 
-
-
-
 # exploration -------------------------------------------------------------
 
 # calculating the number of genomes and types
@@ -64,13 +53,10 @@ bgc %>%
   count()
 
 bgc %>% 
-  distinct(type)
-
-bgc %>% 
   distinct(genome, type)
 
 
-# plot the mean gene length
+# plot the mean gene length by BGC type
 
 gene_length %>% 
   ggplot(aes(y = gene_mean, x = type, 
@@ -111,7 +97,7 @@ ggsave('output/figures/barplot_gene_length.png',
 
 
 
-# create boxplots
+# boxplots of gene length
 
 bgc %>% 
   select(genome, cluster, type, contig, start, end) %>% 

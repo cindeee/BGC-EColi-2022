@@ -139,7 +139,6 @@ gene_pa_long %>%
 # calculate stats between phylogroups pairwise
 # which group has the highest gene count of all? which measure would you use to prove it? 
 
-
 # https://rpkgs.datanovia.com/rstatix/reference/t_test.html
 
 

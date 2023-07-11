@@ -6,7 +6,7 @@ library(tidymodels)
 library(palmerpenguins)
 library(cowplot)
 
-
+# on penguins dataframe as trial 
 glimpse(penguins)
 
 penguins %>% 
@@ -19,8 +19,6 @@ penguins %>%
   geom_point(size = 2) +
   facet_wrap(~species, scales = 'free_x') +
   theme_half_open(15)
-
-
 
 
 ## clean the data ####
