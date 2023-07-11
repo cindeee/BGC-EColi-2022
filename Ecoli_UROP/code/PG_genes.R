@@ -8,7 +8,6 @@ library(cowplot)
 
 # load data ----------------------------
 
-
 metadata = read_excel("data/MAIN_metadata.xlsx", 
                       sheet = "metadata")
 
@@ -22,32 +21,26 @@ phylo =
                           start = 1, end = -7)) %>% 
   select(-fasta)
 
-
 gene_pa = read_delim("data/gene_presence_absence.Rtab", 
                       delim = "\t", escape_double = FALSE, 
                       trim_ws = TRUE)
 
 
-
-
-
-## transpose the df ------
+## transpose df ------
 
 colnames(gene_pa)
 
-# transposing a matrix is super easy but a dataframe in R is a pain
-# first we need to make the table long
 gene_pa_long = gene_pa %>% 
   pivot_longer(cols = `100`:SPC_4, 
                names_to = 'genome', 
                values_to = 'presence')
 
-# then we can add the metadata info to the table itself
+# joining metadata info to gene
 gene_pa_long = gene_pa_long %>% 
   left_join(phylo)
 
 
-# now we can make it wider again, but using the gene info instead of genomes
+# make it wider again, using gene info
 # as columns
 
 gene_pa_wide = gene_pa_long %>% 
@@ -67,7 +60,6 @@ gene_pa_long %>%
   geom_histogram() +
   theme_cowplot()
 
-## WHAT IS THIS PLOT REPRESENTING? 
 
 
 # Dimensionality reduction ------
@@ -76,9 +68,9 @@ gene_pa_long %>%
 
 pca_fit = gene_pa_wide %>% 
   select(where(is.numeric)) %>% # retain only numeric columns
-  prcomp(scale = F) # do PCA on scaled data
+  prcomp(scale = F) # data is binary
 
-
+#  by phylogroup 
 pca_fit %>%
   augment(gene_pa_wide) %>% # add original dataset back in
   drop_na(phylogroup) %>% 
@@ -93,9 +85,9 @@ pca_fit %>%
   background_grid()
 
 
-
+#  by Broadphenotype
 pca_fit %>%
-  augment(gene_pa_wide) %>% # add original dataset back in
+  augment(gene_pa_wide) %>% 
   drop_na(phylogroup) %>% 
   # mutate(phylogroup = str_replace_all(phylogroup, 'E or cladeI', 'E')) %>% 
   filter(phylogroup != 'cladeI') %>% 
@@ -107,8 +99,8 @@ pca_fit %>%
   theme_half_open(12) + 
   background_grid()
 
-## A lighter representation would be without the genes that are always present, 
-# HOW DO WE GET RID OF THEM? 
+## A lighter representation would be without the genes that are always present.
+# how to get rid of them?
 
 pca_fit %>%
   tidy(matrix = "eigenvalues")
@@ -124,8 +116,6 @@ pca_fit %>%
     expand = expansion(mult = c(0, 0.01))
   ) +
   theme_minimal_hgrid(12)
-
-
 
 
 # number of genes ---------------------------------------------------------
@@ -149,7 +139,6 @@ gene_pa_long %>%
 # calculate stats between phylogroups pairwise
 # which group has the highest gene count of all? which measure would you use to prove it? 
 
-# which are the genes 
 
 # https://rpkgs.datanovia.com/rstatix/reference/t_test.html
 
